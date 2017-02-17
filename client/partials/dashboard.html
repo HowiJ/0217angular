@@ -1,0 +1,17 @@
+Hello {{user}}
+<table>
+  <thead>
+    <tr> 
+      <th>Name</th>
+      <th>Age</th>
+      <th>Delete</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="friend in friends track by $index"> 
+      <td ng-bind="friend.name"></td>
+      <td ng-bind="friend.age"></td>
+      <td><button ng-click="delete(friend)">X</button></td>
+    </tr>
+  </tbody>
+</table>

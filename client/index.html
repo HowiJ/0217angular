@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Angular Demo</title>
+    <meta charset="UTF-8">
+    <script src="angular/angular.min.js"></script>
+    <script src="angular-route/angular-route.min.js"></script>
+    <script>
+      var app = angular.module('app', ['ngRoute']);
+
+      app.config(function($routeProvider) {
+        $routeProvider
+        .when('/', {
+            templateUrl: 'partials/dashboard.html',
+            controller: 'dashboardController'
+        })
+        .when('/new', {
+          templateUrl: 'partials/new.html',
+          controller: 'newController'
+        })
+      })
+      // Factory for the Friends
+      app.factory('FriendFactory', function($http) {
+        console.log('Friend Factory started');
+        var factory = {};
+      //    set up dummy data
+        var friends = [];
+      //    set up index method to grab all of the friends
+        factory.index = function(callback) {
+          $http.get('/users').then(function(res) {
+            console.log(res);
+            callback(res.data);
+          })
+        }
+
+      //    set up add method to add more friends
+        factory.create = function(friend, callback) {
+          console.log('friend:', friend);
+          $http.post('/users', friend).then(function(res) {
+            console.log('inside callback');
+            callback();
+            return;
+          })
+
+          console.log('where does this go?');
+        }
+
+        factory.delete = function(friend, callback) {
+          console.log('Friend:', friend);
+          friends.splice(friends.indexOf(friend), 1);
+          callback(friends);
+        }
+
+        return factory;
+      })
+      app.factory('User', function() {
+        var factory = {};
+        var user = null;
+
+        factory.get = function(callback) {
+          callback(user);
+        }
+        factory.set = function(name, callback) {
+          user = name;
+          callback(user);
+        }
+
+        return factory;
+      })
+
+      // Main controller for the application
+      app.controller('dashboardController', function($scope, FriendFactory, User) {
+        console.log('Dashboard Controller started')
+
+        var user = prompt('name');
+        User.set(user, function(data) {
+          $scope.user = data;
+        })
+
+        $scope.friends = [];
+        FriendFactory.index(function(data) { 
+          $scope.friends = data;
+        });
+
+        $scope.delete = function(friend) {
+          FriendFactory.delete(friend, function(data) {
+            $scope.friends = data;
+          })
+        }
+
+        $scope.hello = 'hello';
+      })
+      app.controller('newController', function($scope, FriendFactory, $location, User) {
+        console.log('new Controller started');
+
+        User.get(function(data) {
+          $scope.user = data;
+        })
+
+        console.log($location);
+        $scope.create = function() {
+          FriendFactory.create($scope.newFriend, function(data) {
+            $scope.friends = data;
+            $scope.newFriend = [];
+            $location.url('/');
+          })
+        }
+      })
+    </script>
+  </head>
+  <body ng-app="app">
+    <a href="/">Home</a>
+    <a href="#!/new">New</a>
+    <div ng-view=""></div>
+  </body>
+</html>
